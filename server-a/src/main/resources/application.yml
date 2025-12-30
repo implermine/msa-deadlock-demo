@@ -1,0 +1,14 @@
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 1
+spring:
+  application:
+    name: server-a
+  threads:
+    virtual:
+      enabled: false
+
+target:
+  url: http://server-b:8081/api/b

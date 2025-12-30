@@ -1,0 +1,24 @@
+bootJar { enabled = false }
+jar { enabled = true }
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers:1.19.7' // Boot 3.2 호환
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.springframework:spring-web:6.1.4'     // RestTemplate용
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        // "통과(passed)", "실패(failed)", "건너뜀(skipped)" 이벤트를 보여줌
+        events "passed", "skipped", "failed"
+
+        // System.out.println() 로그도 화면에 찍어줌
+        showStandardStreams = true
+
+        // 실패 시 왜 실패했는지 에러 로그를 자세히 보여줌
+        exceptionFormat "full"
+    }
+}

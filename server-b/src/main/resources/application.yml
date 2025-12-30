@@ -1,0 +1,7 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: server-b
+target:
+  url: http://server-a:8080/api/a/callback

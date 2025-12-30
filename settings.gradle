@@ -1,0 +1,5 @@
+rootProject.name = 'msa-deadlock-demo'
+include 'loop-detector-starter'
+include 'server-a'
+include 'server-b'
+include 'e2e-tests'
