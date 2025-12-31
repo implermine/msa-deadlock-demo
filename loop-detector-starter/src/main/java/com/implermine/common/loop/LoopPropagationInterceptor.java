@@ -20,7 +20,7 @@ public class LoopPropagationInterceptor implements ClientHttpRequestInterceptor 
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
         String currentChain = applicationName;
 
-        // 들어올 때 받았던 헤더가 있다면 이어 붙임
+        // Append incoming header if present
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
             String incomingChain = attributes.getRequest().getHeader("X-Call-Chain");

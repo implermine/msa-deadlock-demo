@@ -17,17 +17,17 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * 플랫폼 스레드 기반 데드락 재현 테스트
+ * Platform Thread-based Deadlock Reproduction Test
  *
- * 설정:
- * - Tomcat max threads: 1 (단일 스레드)
- * - Virtual threads: false (플랫폼 스레드 사용)
+ * Configuration:
+ * - Tomcat max threads: 1 (Single thread)
+ * - Virtual threads: false (Using platform threads)
  *
- * 시나리오:
- * 1. Client -> Server A (유일한 스레드 점유)
- * 2. Server A -> Server B (스레드 블로킹 상태로 대기)
- * 3. Server B -> Server A (응답 불가, 스레드 없음)
- * 4. 데드락 발생 -> Read timeout
+ * Scenario:
+ * 1. Client -> Server A (Occupies the only thread)
+ * 2. Server A -> Server B (Waits in thread blocking state)
+ * 3. Server B -> Server A (No response, no threads available)
+ * 4. Deadlock occurs -> Read timeout
  */
 @Testcontainers
 class DeadlockE2ETest {
@@ -59,7 +59,7 @@ class DeadlockE2ETest {
                     .withStartupTimeout(Duration.ofMinutes(2)));
 
     @Test
-    @DisplayName("데드락 재현: A(Thread=1) -> B -> A 호출 시 타임아웃 발생")
+    @DisplayName("Deadlock Reproduction: A(Thread=1) -> B -> A call causes timeout")
     void verifyDeadlock() {
         String url = String.format("http://%s:%d/api/a",
                 serverA.getHost(),

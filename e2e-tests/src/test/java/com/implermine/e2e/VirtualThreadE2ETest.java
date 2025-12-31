@@ -16,12 +16,12 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Virtual Thread를 사용한 데드락 방지 테스트
+ * Deadlock prevention test using Virtual Threads
  *
- * 가상 스레드 활성화 시:
- * - 플랫폼 스레드가 블로킹되어도 가상 스레드가 계속 생성됨
- * - 데드락 발생하지 않음
- * - 정상적으로 응답 반환
+ * When Virtual Threads are enabled:
+ * - Virtual threads continue to be created even if platform threads are blocked
+ * - Deadlock does not occur
+ * - Response is returned normally
  */
 @Testcontainers
 class VirtualThreadE2ETest {
@@ -54,7 +54,7 @@ class VirtualThreadE2ETest {
                     .withStartupTimeout(Duration.ofMinutes(2)));
 
     @Test
-    @DisplayName("가상 스레드: A(Thread=1, VirtualThread=true) -> B -> A 호출 시 정상 응답")
+    @DisplayName("Virtual Threads: A(Thread=1, VirtualThread=true) -> B -> A call returns normal response")
     void verifyNoDeadlockWithVirtualThreads() {
         String url = String.format("http://%s:%d/api/a",
                 serverA.getHost(),
