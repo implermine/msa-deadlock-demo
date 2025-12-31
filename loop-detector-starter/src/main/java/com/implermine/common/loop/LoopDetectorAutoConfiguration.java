@@ -20,7 +20,6 @@ public class LoopDetectorAutoConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(new LoopDetectionInterceptor(applicationName));
     }
 
-    // 라이브러리를 쓰는 쪽에서 RestTemplate을 빈으로 등록하면 인터셉터를 끼워줌
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate restTemplate = new RestTemplate();

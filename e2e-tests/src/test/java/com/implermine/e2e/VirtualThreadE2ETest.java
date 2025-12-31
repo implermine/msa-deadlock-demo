@@ -3,7 +3,6 @@ package com.implermine.e2e;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -14,23 +13,18 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 플랫폼 스레드 기반 데드락 재현 테스트
+ * Virtual Thread를 사용한 데드락 방지 테스트
  *
- * 설정:
- * - Tomcat max threads: 1 (단일 스레드)
- * - Virtual threads: false (플랫폼 스레드 사용)
- *
- * 시나리오:
- * 1. Client -> Server A (유일한 스레드 점유)
- * 2. Server A -> Server B (스레드 블로킹 상태로 대기)
- * 3. Server B -> Server A (응답 불가, 스레드 없음)
- * 4. 데드락 발생 -> Read timeout
+ * 가상 스레드 활성화 시:
+ * - 플랫폼 스레드가 블로킹되어도 가상 스레드가 계속 생성됨
+ * - 데드락 발생하지 않음
+ * - 정상적으로 응답 반환
  */
 @Testcontainers
-class DeadlockE2ETest {
+class VirtualThreadE2ETest {
 
     private static final Network network = Network.newNetwork();
 
@@ -42,7 +36,7 @@ class DeadlockE2ETest {
             .withExposedPorts(8080)
             .withEnv("TARGET_URL", "http://server-b:8081/api/b")
             .withEnv("SERVER_TOMCAT_THREADS_MAX", "1")
-            .withEnv("SPRING_THREADS_VIRTUAL_ENABLED", "false")
+            .withEnv("SPRING_THREADS_VIRTUAL_ENABLED", "true")
             .waitingFor(Wait.forHttp("/health")
                     .forStatusCode(200)
                     .withStartupTimeout(Duration.ofMinutes(2)));
@@ -54,24 +48,28 @@ class DeadlockE2ETest {
             .withNetworkAliases("server-b")
             .withExposedPorts(8081)
             .withEnv("TARGET_URL", "http://server-a:8080/api/a/callback")
+            .withEnv("SPRING_THREADS_VIRTUAL_ENABLED", "true")
             .waitingFor(Wait.forHttp("/health")
                     .forStatusCode(200)
                     .withStartupTimeout(Duration.ofMinutes(2)));
 
     @Test
-    @DisplayName("데드락 재현: A(Thread=1) -> B -> A 호출 시 타임아웃 발생")
-    void verifyDeadlock() {
+    @DisplayName("가상 스레드: A(Thread=1, VirtualThread=true) -> B -> A 호출 시 정상 응답")
+    void verifyNoDeadlockWithVirtualThreads() {
         String url = String.format("http://%s:%d/api/a",
                 serverA.getHost(),
                 serverA.getMappedPort(8080));
 
         RestTemplate restTemplate = new RestTemplate();
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setReadTimeout(2000);
+        factory.setReadTimeout(5000);
         restTemplate.setRequestFactory(factory);
 
-        assertThatThrownBy(() -> restTemplate.getForObject(url, String.class))
-                .isInstanceOf(ResourceAccessException.class)
-                .hasMessageContaining("Read timed out");
+        String response = restTemplate.getForObject(url, String.class);
+
+        assertThat(response)
+                .isNotNull()
+                .contains("A ->")
+                .contains("A Callback");
     }
 }

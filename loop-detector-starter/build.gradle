@@ -1,7 +1,7 @@
-bootJar { enabled = false } // 실행 파일 아님
+bootJar { enabled = false }
 jar { enabled = true }
 
-dependencies{
+dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }

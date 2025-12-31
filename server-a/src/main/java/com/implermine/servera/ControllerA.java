@@ -19,7 +19,6 @@ public class ControllerA {
     @GetMapping("/api/a")
     public String callB() {
         log.info(">>> Server A: Request Received. Calling Server B...");
-        // 여기서 블로킹 발생 (스레드 점유한 상태로 대기) -> 데드락 원인
         String res = restTemplate.getForObject(targetUrl, String.class);
         return "A -> " + res;
     }
@@ -28,5 +27,10 @@ public class ControllerA {
     public String callback() {
         log.info(">>> Server A: Callback Received!");
         return "A Callback";
+    }
+
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
     }
 }

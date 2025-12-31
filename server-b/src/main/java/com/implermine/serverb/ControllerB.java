@@ -21,4 +21,9 @@ public class ControllerB {
         log.info(">>> Server B: Calling back Server A...");
         return restTemplate.getForObject(targetUrl, String.class);
     }
+
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
+    }
 }

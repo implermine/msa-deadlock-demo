@@ -23,7 +23,6 @@ subprojects {
             languageVersion = JavaLanguageVersion.of(21)
         }
     }
-//    sourceCompatibility = '21'
 
     dependencies {
         compileOnly 'org.projectlombok:lombok'
