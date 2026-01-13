@@ -14,18 +14,38 @@ To demonstrate and compare the concurrency models of:
 Two services, `Server A` and `Server B`, synchronously call each other.
 
 ```mermaid
+%%{init: { 'sequence': { 'actorMargin': 150, 'noteMargin': 10, 'boxMargin': 10 } } }%%
 sequenceDiagram
-    participant Test/Client
-    participant ServerA
-    participant ServerB
+    autonumber
+    participant Users as Clients
+    participant ServerA as Server A
+    participant ServerB as Server B
 
-    Test/Client->>ServerA: 1. Request
-    Note right of ServerA: Thread Pool Active (Holds Thread-1)
-    ServerA->>ServerB: 2. Sync HTTP Call (Waiting...)
-    Note right of ServerB: Thread Pool Active (Holds Thread-2)
-    ServerB->>ServerA: 3. Sync HTTP Call (Circular!)
-    Note right of ServerA: Requires New Thread
-    Note over ServerA, ServerB: 💥 DEADLOCK (If pool is full/exhausted)
+    %% 1. 상황 발생
+    rect rgb(240, 248, 255)
+        Note over Users, ServerA: ⚡ Burst Requests (N)
+        Users->>ServerA: Requests (1 ... N)
+    end
+
+    Note right of ServerA: 🔒 Pool Full (N/N)<br/>(Waiting for ServerB)
+
+    %% 2. A가 B를 필요로 함 (Dependency 1)
+    rect rgb(255, 245, 245)
+        Note over ServerA, ServerB: 👉 1. Server A needs Server B
+        ServerA->>ServerB: Sync Calls (1 ... N)
+    end
+    
+    Note right of ServerB: Processing...
+
+    %% 3. B가 A를 필요로 함 (Dependency 2 - Circular)
+    rect rgb(255, 230, 230)
+        Note over ServerA, ServerB: 👈 2. Server B needs Server A
+        ServerB->>ServerA: Recursive Calls (1 ... N)
+    end
+
+    Note right of ServerA: 🚫 BLOCKED<br/>(0 Threads Left)
+    
+    Note over ServerA, ServerB: 💥 DEADLOCK (Mutual Waiting)
 ```
 
 ### 1. The Problem: Thread Pool Hell
